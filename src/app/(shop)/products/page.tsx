@@ -4,8 +4,7 @@ import Link from 'next/link'
 import { Container } from '@/components/ui/Container'
 import { Section } from '@/components/ui/Section'
 import { ProductGrid } from '@/components/product/ProductGrid'
-import { db } from '@/lib/db'
-import { toCardData } from '@/lib/productMappers'
+import { CATEGORIES, BENEFIT_TAGS, PRODUCTS, productToCardData } from '@/lib/mock-data'
 
 export default async function ProductsPage({
   searchParams,
@@ -13,19 +12,10 @@ export default async function ProductsPage({
   searchParams: Promise<{ cat?: string; benefit?: string }>
 }) {
   const { cat, benefit } = await searchParams
-  const where: { active: boolean; category?: { slug: string }; benefits?: { some: { benefitTag: { slug: string } } } } = {
-    active: true,
-  }
-  if (cat) where.category = { slug: cat }
-  if (benefit) where.benefits = { some: { benefitTag: { slug: benefit } } }
 
-  const products = await db.product.findMany({
-    where,
-    include: { variants: true, benefits: { include: { benefitTag: true } }, reviews: { select: { rating: true } } },
-    orderBy: { createdAt: 'desc' },
-  })
-  const categories = await db.category.findMany({ orderBy: { order: 'asc' } })
-  const benefits = await db.benefitTag.findMany()
+  let products = PRODUCTS.filter(p => p.active)
+  if (cat) products = products.filter(p => p.categorySlug === cat)
+  if (benefit) products = products.filter(p => p.benefits.includes(benefit))
 
   return (
     <Section className="pt-10">
@@ -38,21 +28,17 @@ export default async function ProductsPage({
             <Link
               href="/products"
               className={`px-3 py-1.5 text-sm border rounded-sm ${
-                !cat
-                  ? 'bg-nanyang text-ivory border-nanyang'
-                  : 'border-sage/40 hover:border-nanyang'
+                !cat ? 'bg-nanyang text-ivory border-nanyang' : 'border-sage/40 hover:border-nanyang'
               }`}
             >
               全部
             </Link>
-            {categories.map((c) => (
+            {CATEGORIES.map((c) => (
               <Link
                 key={c.slug}
                 href={`/products?cat=${c.slug}`}
                 className={`px-3 py-1.5 text-sm border rounded-sm ${
-                  cat === c.slug
-                    ? 'bg-nanyang text-ivory border-nanyang'
-                    : 'border-sage/40 hover:border-nanyang'
+                  cat === c.slug ? 'bg-nanyang text-ivory border-nanyang' : 'border-sage/40 hover:border-nanyang'
                 }`}
               >
                 {c.nameZh}
@@ -60,7 +46,7 @@ export default async function ProductsPage({
             ))}
           </div>
           <div className="flex flex-wrap gap-2">
-            {benefits.map((b) => (
+            {BENEFIT_TAGS.map((b) => (
               <Link
                 key={b.slug}
                 href={`/products?benefit=${b.slug}`}
@@ -79,7 +65,7 @@ export default async function ProductsPage({
         {products.length === 0 ? (
           <p className="text-sage text-center py-20">暂无商品</p>
         ) : (
-          <ProductGrid products={products.map(toCardData)} />
+          <ProductGrid products={products.map(productToCardData)} />
         )}
       </Container>
     </Section>

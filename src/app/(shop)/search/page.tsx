@@ -6,8 +6,7 @@ import { Section } from '@/components/ui/Section'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { ProductGrid } from '@/components/product/ProductGrid'
-import { db } from '@/lib/db'
-import { toCardData } from '@/lib/productMappers'
+import { searchProducts, productToCardData } from '@/lib/mock-data'
 
 export default async function SearchPage({
   searchParams,
@@ -16,22 +15,7 @@ export default async function SearchPage({
 }) {
   const { q } = await searchParams
   const query = q?.trim() ?? ''
-
-  const products = query
-    ? await db.product.findMany({
-        where: {
-          active: true,
-          OR: [
-            { nameZh: { contains: query } },
-            { nameEn: { contains: query } },
-            { description: { contains: query } },
-            { tagline: { contains: query } },
-          ],
-        },
-        include: { variants: true, benefits: { include: { benefitTag: true } }, reviews: { select: { rating: true } } },
-        take: 40,
-      })
-    : []
+  const products = query ? searchProducts(query) : []
 
   return (
     <Section className="pt-10">
@@ -57,7 +41,7 @@ export default async function SearchPage({
           </div>
         )}
 
-        {products.length > 0 && <ProductGrid products={products.map(toCardData)} />}
+        {products.length > 0 && <ProductGrid products={products.map(productToCardData)} />}
       </Container>
     </Section>
   )

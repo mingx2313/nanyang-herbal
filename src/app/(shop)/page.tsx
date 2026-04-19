@@ -6,28 +6,18 @@ import { Section } from '@/components/ui/Section'
 import { Button } from '@/components/ui/Button'
 import { ProductGrid } from '@/components/product/ProductGrid'
 import { PeranakanDivider } from '@/components/ui/PeranakanDivider'
-import { db } from '@/lib/db'
-import { toCardData } from '@/lib/productMappers'
+import { CATEGORIES, PRODUCTS, getFeaturedProducts, productToCardData } from '@/lib/mock-data'
 
-export default async function HomePage() {
-  const [featured, categories, reviewStats, orderStats] = await Promise.all([
-    db.product.findMany({
-      where: { featured: true, active: true },
-      take: 8,
-      include: {
-        variants: true,
-        benefits: { include: { benefitTag: true } },
-        reviews: { select: { rating: true } },
-      },
-    }),
-    db.category.findMany({ orderBy: { order: 'asc' } }),
-    db.review.aggregate({ _avg: { rating: true }, _count: { id: true } }),
-    db.orderItem.aggregate({ _sum: { qty: true } }),
-  ])
+export default function HomePage() {
+  const featured = getFeaturedProducts()
+  const categories = CATEGORIES
 
-  const avgRating = reviewStats._avg.rating?.toFixed(1) ?? '4.9'
-  const totalReviews = reviewStats._count.id
-  const totalSold = orderStats._sum.qty ?? 2400
+  const allReviews = PRODUCTS.flatMap(p => p.reviews)
+  const avgRating = allReviews.length > 0
+    ? (allReviews.reduce((s, r) => s + r.rating, 0) / allReviews.length).toFixed(1)
+    : '4.9'
+  const totalReviews = allReviews.length
+  const totalSold = 2400
 
   return (
     <>
@@ -130,7 +120,7 @@ export default async function HomePage() {
               查看全部 →
             </Link>
           </div>
-          <ProductGrid products={featured.map(toCardData)} />
+          <ProductGrid products={featured.map(productToCardData)} />
         </Container>
       </Section>
 

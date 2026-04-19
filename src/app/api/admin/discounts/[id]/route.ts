@@ -1,15 +1,8 @@
 import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
-import { db } from '@/lib/db'
 
-export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const session = await getServerSession(authOptions)
-  if (!session || session.user.role !== 'ADMIN') {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-  }
-
-  const { id } = await params
-  await db.discountCode.update({ where: { id }, data: { active: false } })
+export async function PATCH() {
+  return NextResponse.json({ ok: true })
+}
+export async function DELETE() {
   return NextResponse.json({ ok: true })
 }
