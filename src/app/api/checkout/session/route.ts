@@ -6,9 +6,8 @@ import { db } from '@/lib/db'
 import { computeOrderTotals } from '@/lib/orders'
 import type { DiscountRule } from '@/lib/discount'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2026-03-25.dahlia' })
-
 export async function POST(req: Request) {
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2026-03-25.dahlia' })
   const session = await getServerSession(authOptions)
   if (!session) return NextResponse.json({ error: '请先登录' }, { status: 401 })
 
