@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { db } from '@/lib/db'
 import { formatMYR } from '@/lib/pricing'
 import { DiscountCreateForm } from '@/components/admin/DiscountCreateForm'
